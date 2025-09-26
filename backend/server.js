@@ -58,30 +58,48 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// CORS configuration
+// CORS configuration - Allow all origins for mobile app development
 const corsOptions = {
-  origin: isDevelopment
-    ? [
-        'http://localhost:8081',
-        'http://localhost:3000',
-        'exp://localhost:8081',
-        'http://192.168.1.9:8081',
-        'exp://192.168.1.9:8081',
-        'exp://192.168.1.9:19000',
-        'exp://192.168.1.9:19001',
-        'exp://192.168.1.9:19002',
-        // Allow all origins in development for mobile testing
-        true
-      ]
-    : [
-        process.env.FRONTEND_URL,
-        'https://financeapp-77na.onrender.com',
-        // Allow common mobile app origins
-        /^exp:\/\/.*$/,
-        /^http:\/\/192\.168\.\d+\.\d+:.*$/,
-        /^http:\/\/10\.\d+\.\d+\.\d+:.*$/,
-        /^http:\/\/172\.\d+\.\d+\.\d+:.*$/
-      ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Allow all origins for now to fix mobile app issues
+    // In production, you can restrict this to specific domains
+    return callback(null, true);
+    
+    // Original restrictive logic (commented out for now)
+    /*
+    const allowedOrigins = isDevelopment
+      ? [
+          'http://localhost:8081',
+          'http://localhost:3000',
+          'exp://localhost:8081',
+          'http://192.168.1.9:8081',
+          'exp://192.168.1.9:8081',
+          'exp://192.168.1.9:19000',
+          'exp://192.168.1.9:19001',
+          'exp://192.168.1.9:19002',
+          true
+        ]
+      : [
+          process.env.FRONTEND_URL,
+          'https://financeapp-77na.onrender.com',
+          /^exp:\/\/.*$/,
+          /^http:\/\/192\.168\.\d+\.\d+:.*$/,
+          /^http:\/\/10\.\d+\.\d+\.\d+:.*$/,
+          /^http:\/\/172\.\d+\.\d+\.\d+:.*$/
+        ];
+    
+    if (allowedOrigins.includes(true) || allowedOrigins.some(pattern => 
+      typeof pattern === 'string' ? pattern === origin : pattern.test(origin)
+    )) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+    */
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -117,11 +135,40 @@ app.get('/health', (req, res) => {
 
 // Test endpoint for debugging
 app.get('/api/test', (req, res) => {
+  console.log('Test endpoint hit:', {
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent'],
+    method: req.method,
+    url: req.url
+  });
+  
   res.status(200).json({
     message: 'API is working!',
     timestamp: new Date().toISOString(),
     origin: req.headers.origin,
     userAgent: req.headers['user-agent'],
+    environment: NODE_ENV,
+  });
+});
+
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} - Origin: ${req.headers.origin || 'none'}`);
+  next();
+});
+
+// Root endpoint to handle 404s
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Finance Tracker API Server',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      test: '/api/test',
+      auth: '/api/auth',
+      api: '/api'
+    }
   });
 });
 
