@@ -1,0 +1,56 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#007AFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0056CC;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f0f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="200" fill="url(#bgGradient)"/>
+  
+  <!-- Main Icon Container -->
+  <g transform="translate(512, 512)">
+    <!-- Dollar Sign -->
+    <path d="M-60 -120 L-60 120 M-60 -60 L60 -60 M-60 60 L60 60" 
+          stroke="url(#iconGradient)" 
+          stroke-width="20" 
+          stroke-linecap="round" 
+          fill="none"/>
+    
+    <!-- Chart Bars -->
+    <rect x="-120" y="-30" width="25" height="60" fill="url(#iconGradient)" opacity="0.8" rx="3"/>
+    <rect x="-85" y="-50" width="25" height="80" fill="url(#iconGradient)" opacity="0.9" rx="3"/>
+    <rect x="-50" y="-70" width="25" height="100" fill="url(#iconGradient)" rx="3"/>
+    <rect x="-15" y="-45" width="25" height="75" fill="url(#iconGradient)" opacity="0.9" rx="3"/>
+    <rect x="20" y="-55" width="25" height="85" fill="url(#iconGradient)" opacity="0.8" rx="3"/>
+    <rect x="55" y="-35" width="25" height="65" fill="url(#iconGradient)" opacity="0.7" rx="3"/>
+    
+    <!-- Trend Line -->
+    <path d="M-120 -30 L-85 -50 L-50 -70 L-15 -45 L20 -55 L55 -35" 
+          stroke="url(#iconGradient)" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          fill="none" 
+          opacity="0.9"/>
+    
+    <!-- Upward Arrow -->
+    <path d="M45 -45 L65 -25 L45 -5" 
+          stroke="url(#iconGradient)" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+  </g>
+  
+  <!-- Subtle highlights -->
+  <circle cx="150" cy="150" r="3" fill="#ffffff" opacity="0.2"/>
+  <circle cx="874" cy="150" r="3" fill="#ffffff" opacity="0.2"/>
+  <circle cx="150" cy="874" r="3" fill="#ffffff" opacity="0.2"/>
+  <circle cx="874" cy="874" r="3" fill="#ffffff" opacity="0.2"/>
+</svg>

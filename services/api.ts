@@ -9,6 +9,13 @@ import { ENV_CONFIG } from '@/config/environment';
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || ENV_CONFIG.API_BASE_URL;
 const AUTH_TOKEN_KEY = 'auth_token';
 
+// Debug logging
+console.log('API Configuration:', {
+  EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
+  ENV_CONFIG_API_BASE_URL: ENV_CONFIG.API_BASE_URL,
+  FINAL_API_BASE_URL: API_BASE_URL
+});
+
 class ApiService {
   private token: string | null = null;
 
@@ -58,6 +65,13 @@ class ApiService {
       const url = `${API_BASE_URL}${endpoint}`;
       const headers = await this.getHeaders(options.headers?.Authorization !== 'skip');
 
+      console.log('Making API request:', {
+        url,
+        method: options.method || 'GET',
+        endpoint,
+        hasAuth: !!this.token
+      });
+
       // Add timeout and better error handling for deployed server
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
@@ -69,6 +83,13 @@ class ApiService {
       });
 
       clearTimeout(timeoutId);
+
+      console.log('API Response:', {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
 
       // Handle different response types
       let data;

@@ -66,9 +66,22 @@ const corsOptions = {
         'http://localhost:3000',
         'exp://localhost:8081',
         'http://192.168.1.9:8081',
-        'exp://192.168.1.9:8081'
+        'exp://192.168.1.9:8081',
+        'exp://192.168.1.9:19000',
+        'exp://192.168.1.9:19001',
+        'exp://192.168.1.9:19002',
+        // Allow all origins in development for mobile testing
+        true
       ]
-    : [process.env.FRONTEND_URL],
+    : [
+        process.env.FRONTEND_URL,
+        'https://financeapp-77na.onrender.com',
+        // Allow common mobile app origins
+        /^exp:\/\/.*$/,
+        /^http:\/\/192\.168\.\d+\.\d+:.*$/,
+        /^http:\/\/10\.\d+\.\d+\.\d+:.*$/,
+        /^http:\/\/172\.\d+\.\d+\.\d+:.*$/
+      ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -99,6 +112,16 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     environment: NODE_ENV,
     version: '1.0.0',
+  });
+});
+
+// Test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  res.status(200).json({
+    message: 'API is working!',
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent'],
   });
 });
 
