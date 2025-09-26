@@ -72,7 +72,7 @@ FRONTEND_URL=http://localhost:8081
 Create a `.env.local` file in the project root:
 
 ```bash
-EXPO_PUBLIC_API_URL=http://localhost:5000/api
+EXPO_PUBLIC_API_URL=https://financeapp-77na.onrender.com/api
 EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
 EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET=profile_images
 ```

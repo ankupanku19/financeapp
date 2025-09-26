@@ -115,7 +115,7 @@ export default function RegisterScreen() {
     try {
       setIsLoading(true);
       // Send registration request to backend - this will send OTP to email
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/register`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'https://financeapp-77na.onrender.com/api'}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

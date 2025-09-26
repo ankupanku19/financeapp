@@ -72,7 +72,7 @@ A production-ready Node.js backend API for the Finance Tracker application built
    npm start
    ```
 
-The API will be available at `http://localhost:5000`
+The API will be available at `https://financeapp-77na.onrender.com`
 
 ## API Documentation
 

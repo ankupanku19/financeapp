@@ -114,7 +114,7 @@ export default function CompleteProfileScreen() {
     try {
       setIsLoading(true);
       console.log('Making API call with tempToken:', tempToken ? 'Present' : 'Missing');
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/complete-profile`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'https://financeapp-77na.onrender.com/api'}/auth/complete-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

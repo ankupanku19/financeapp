@@ -71,7 +71,7 @@ export default function OTPVerificationScreen() {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/verify-otp`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'https://financeapp-77na.onrender.com/api'}/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ export default function OTPVerificationScreen() {
   const handleResendOTP = async () => {
     try {
       setIsResending(true);
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api'}/auth/resend-otp`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'https://financeapp-77na.onrender.com/api'}/auth/resend-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

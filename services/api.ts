@@ -4,8 +4,9 @@ import {
   AIGoalRecommendation, AuthResponse, ApiResponse,
   AISuggestion, IncomePattern, NotificationItem
 } from '@/types/api';
+import { ENV_CONFIG } from '@/config/environment';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://your-backend-url.com/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || ENV_CONFIG.API_BASE_URL;
 const AUTH_TOKEN_KEY = 'auth_token';
 
 class ApiService {
@@ -57,24 +58,57 @@ class ApiService {
       const url = `${API_BASE_URL}${endpoint}`;
       const headers = await this.getHeaders(options.headers?.Authorization !== 'skip');
 
+      // Add timeout and better error handling for deployed server
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch(url, {
         ...options,
         headers: { ...headers, ...options.headers },
+        signal: controller.signal,
       });
 
-      const data = await response.json();
+      clearTimeout(timeoutId);
+
+      // Handle different response types
+      let data;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = { error: await response.text() };
+      }
 
       if (!response.ok) {
+        console.error(`API Error on ${endpoint}:`, {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+          url
+        });
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
       return data;
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.error(`API Timeout on ${endpoint}`);
+        throw new Error('Request timeout - please check your internet connection');
+      }
       console.error(`API Error on ${endpoint}:`, error);
       throw error;
     }
   }
 
+
+  // Health check for deployed server
+  async healthCheck(): Promise<{ status: string; timestamp: string; uptime: number }> {
+    const response = await this.request<{ status: string; timestamp: string; uptime: number }>('/health', {
+      headers: { Authorization: 'skip' },
+    });
+    return response.data;
+  }
 
   // Authentication
   async login(email: string, password: string): Promise<AuthResponse> {
