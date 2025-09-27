@@ -133,11 +133,11 @@ export default function CompleteProfileScreen() {
         throw new Error(data.error || 'Failed to save profile');
       }
 
-      // Navigate to finance questions screen
+      // Navigate to avatar setup screen
       console.log('Complete Profile - Full response:', data);
       console.log('Complete Profile - Navigating with tempToken:', data.data?.tempToken ? 'Present' : 'Missing');
       router.push({
-        pathname: '/(auth)/finance-questions',
+        pathname: '/(auth)/avatar-setup',
         params: { tempToken: data.data?.tempToken }
       });
     } catch (error: any) {
