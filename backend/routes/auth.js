@@ -11,22 +11,25 @@ const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
-// Email transporter setup - using Gmail with proper configuration
+// Email transporter setup - using environment variables
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,
   auth: {
-    user: 'your-email@gmail.com', // Replace with your Gmail
-    pass: 'your-app-password',    // Replace with your Gmail app password
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
   tls: {
     rejectUnauthorized: false
   },
-  connectionTimeout: 60000,
-  greetingTimeout: 30000,
-  socketTimeout: 60000
+  connectionTimeout: 30000,
+  greetingTimeout: 10000,
+  socketTimeout: 30000,
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100
 });
 
 // Validation rules
@@ -134,9 +137,18 @@ router.post('/register', registerValidation, async (req, res) => {
     // Send OTP email
     try {
       console.log('Attempting to send OTP email to:', email);
-      
+      console.log('SMTP Config:', {
+        host: 'smtp.gmail.com',
+        port: 587,
+        user: process.env.SMTP_USER?.substring(0, 5) + '***'
+      });
+
+      // Verify transporter connection first
+      await transporter.verify();
+      console.log('SMTP connection verified successfully');
+
       const mailOptions = {
-        from: process.env.FROM_EMAIL || 'noreply@financeapp.com',
+        from: process.env.FROM_EMAIL || process.env.SMTP_USER,
         to: email,
         subject: 'Verify Your Email - Finance App',
         html: `
@@ -154,13 +166,15 @@ router.post('/register', registerValidation, async (req, res) => {
 
       const result = await transporter.sendMail(mailOptions);
       console.log('OTP email sent successfully:', result.messageId);
-      
+
     } catch (emailError) {
       console.error('Email sending error:', emailError);
-      
-      // For now, just log the error and continue
-      // In production, you'd want to handle this properly
-      console.log('Continuing without email verification...');
+
+      // Return error response instead of continuing silently
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: 'Failed to send email verification code'
+      });
     }
 
     res.status(StatusCodes.OK).json({
@@ -287,9 +301,13 @@ router.post('/resend-otp', [
     // Send OTP email
     try {
       console.log('Attempting to resend OTP email to:', email);
-      
+
+      // Verify transporter connection first
+      await transporter.verify();
+      console.log('SMTP connection verified successfully for resend');
+
       const mailOptions = {
-        from: process.env.FROM_EMAIL || 'noreply@financeapp.com',
+        from: process.env.FROM_EMAIL || process.env.SMTP_USER,
         to: email,
         subject: 'Verify Your Email - Finance App',
         html: `
@@ -306,10 +324,13 @@ router.post('/resend-otp', [
 
       const result = await transporter.sendMail(mailOptions);
       console.log('OTP resend email sent successfully:', result.messageId);
-      
+
     } catch (emailError) {
       console.error('Email resend error:', emailError);
-      console.log('Continuing without email verification...');
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: 'Failed to send email verification code'
+      });
     }
 
     res.status(StatusCodes.OK).json({

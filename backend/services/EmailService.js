@@ -5,13 +5,23 @@ const fs = require('fs').promises;
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
+      service: 'gmail',
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: process.env.SMTP_PORT || 587,
       secure: false,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
-      }
+      },
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 30000,
+      greetingTimeout: 10000,
+      socketTimeout: 30000,
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100
     });
 
     this.templatesPath = path.join(__dirname, '../templates/email');
@@ -22,8 +32,12 @@ class EmailService {
    */
   async sendEmail({ to, subject, template, data = {} }) {
     try {
+      // Verify connection first
+      await this.transporter.verify();
+      console.log('SMTP connection verified for EmailService');
+
       const html = await this.renderTemplate(template, data);
-      
+
       const mailOptions = {
         from: `"${process.env.APP_NAME || 'Finance App'}" <${process.env.SMTP_USER}>`,
         to,
