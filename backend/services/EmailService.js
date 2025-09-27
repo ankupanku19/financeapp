@@ -91,7 +91,7 @@ class EmailService {
     try {
       const templatePath = path.join(this.templatesPath, `${templateName}.html`);
       let template = await fs.readFile(templatePath, 'utf8');
-      
+
       // Replace placeholders with data
       template = template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
         return data[key] || match;
@@ -99,8 +99,8 @@ class EmailService {
 
       return template;
     } catch (error) {
-      console.error(`Error rendering template ${templateName}:`, error);
-      // Fallback to default template
+      // Template file doesn't exist - use default template
+      console.log(`Template ${templateName} not found, using default template`);
       return this.getDefaultTemplate(data);
     }
   }
