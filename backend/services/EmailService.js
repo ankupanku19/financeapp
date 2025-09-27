@@ -5,23 +5,22 @@ const fs = require('fs').promises;
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
-      secure: false,
+      host: 'smtp.gmail.com',
+      port: 465, // Use secure port for better compatibility
+      secure: true, // Use SSL
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
       tls: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
       },
-      connectionTimeout: 30000,
-      greetingTimeout: 10000,
-      socketTimeout: 30000,
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 100
+      connectionTimeout: 60000, // Increased for production
+      greetingTimeout: 30000,
+      socketTimeout: 60000,
+      logger: true, // Enable logging for debugging
+      debug: true // Enable debug mode
     });
 
     this.templatesPath = path.join(__dirname, '../templates/email');

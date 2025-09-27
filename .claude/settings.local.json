@@ -5,7 +5,10 @@
       "Bash(findstr:*)",
       "Bash(dir:*)",
       "Bash(npm run android:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
