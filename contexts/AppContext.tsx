@@ -220,7 +220,11 @@ export function AppProvider({ children }: AppProviderProps) {
     try {
       const newIncome = await apiService.createIncome(incomeData);
       setIncome(prev => [newIncome, ...prev]);
-      await refreshInsights(); // Refresh insights after adding income
+
+      // Refresh insights asynchronously in the background (don't wait)
+      refreshInsights().catch(error => {
+        console.error('Failed to refresh insights in background:', error);
+      });
     } catch (error) {
       console.error('Failed to add income:', error);
       throw error;
@@ -241,7 +245,11 @@ export function AppProvider({ children }: AppProviderProps) {
     try {
       await apiService.deleteIncome(id);
       setIncome(prev => prev.filter(item => item._id !== id));
-      await refreshInsights();
+
+      // Refresh insights asynchronously in the background (don't wait)
+      refreshInsights().catch(error => {
+        console.error('Failed to refresh insights in background:', error);
+      });
     } catch (error) {
       console.error('Failed to delete income:', error);
       throw error;
@@ -272,7 +280,10 @@ export function AppProvider({ children }: AppProviderProps) {
         }));
       }
       
-      await refreshInsights(); // Refresh insights after adding savings
+      // Refresh insights asynchronously in the background (don't wait)
+      refreshInsights().catch(error => {
+        console.error('Failed to refresh insights in background:', error);
+      });
     } catch (error) {
       console.error('Failed to add savings:', error);
       throw error;
@@ -317,7 +328,10 @@ export function AppProvider({ children }: AppProviderProps) {
         }));
       }
       
-      await refreshInsights();
+      // Refresh insights asynchronously in the background (don't wait)
+      refreshInsights().catch(error => {
+        console.error('Failed to refresh insights in background:', error);
+      });
     } catch (error) {
       console.error('Failed to delete savings:', error);
       throw error;

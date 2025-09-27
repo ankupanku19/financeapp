@@ -31,6 +31,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [initialAuthCheck, setInitialAuthCheck] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -40,19 +41,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
       const token = await AsyncStorage.getItem('auth_token');
-      
+
       if (token) {
+        // First set optimistic auth state to prevent flash
+        setIsAuthenticated(true);
+
         // Ensure the API client has the token loaded before making requests
         await apiService.setToken(token);
-        const userData = await apiService.getMe();
-        setUser(userData);
-        setIsAuthenticated(true);
+
+        try {
+          const userData = await apiService.getMe();
+          setUser(userData);
+          // Confirm authentication is valid
+          setIsAuthenticated(true);
+        } catch (error) {
+          // Token is invalid, clear auth state
+          console.error('Token validation failed:', error);
+          await logout();
+        }
+      } else {
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       await logout();
     } finally {
       setIsLoading(false);
+      setInitialAuthCheck(true);
     }
   };
 
@@ -112,7 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     user,
-    isLoading,
+    isLoading: isLoading || !initialAuthCheck,
     isAuthenticated,
     login,
     register,

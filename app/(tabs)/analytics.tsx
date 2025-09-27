@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   Dimensions,
-  Animated,
-  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart, PieChart, BarChart } from 'react-native-chart-kit';
@@ -35,48 +33,11 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, colors, delay }) => {
   const { theme } = useTheme();
-  const animationValue = useRef(new Animated.Value(0)).current;
-  const scaleValue = useRef(new Animated.Value(0.8)).current;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      Animated.parallel([
-        Animated.timing(animationValue, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleValue, {
-          toValue: 1,
-          tension: 50,
-          friction: 7,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const translateY = animationValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [30, 0],
-  });
-
-  const opacity = animationValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.statCard,
-        {
-          transform: [{ translateY }, { scale: scaleValue }],
-          opacity,
-        },
       ]}
     >
       <LinearGradient
@@ -98,7 +59,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, color
           )}
         </View>
       </LinearGradient>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -111,49 +72,10 @@ interface ChartCardProps {
 
 const ChartCard: React.FC<ChartCardProps> = ({ title, icon, children, delay }) => {
   const { theme } = useTheme();
-  const animationValue = useRef(new Animated.Value(0)).current;
-  const scaleValue = useRef(new Animated.Value(0.9)).current;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      Animated.parallel([
-        Animated.timing(animationValue, {
-          toValue: 1,
-          duration: 600,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleValue, {
-          toValue: 1,
-          tension: 60,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const translateY = animationValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [20, 0],
-  });
-
-  const opacity = animationValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
 
   return (
-    <Animated.View
-      style={[
-        {
-          transform: [{ translateY }, { scale: scaleValue }],
-          opacity,
-        },
-      ]}
-    >
+    <View>
+
       <View style={[styles.chartContainer, { backgroundColor: theme.colors.background.secondary }]}>
         <View style={styles.chartHeader}>
           <View style={styles.chartTitleContainer}>
@@ -165,7 +87,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, icon, children, delay }) =
         </View>
         {children}
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -183,16 +105,9 @@ export default function AnalyticsScreen() {
   const [patterns, setPatterns] = useState<IncomePattern[]>([]);
   const [loadingPatterns, setLoadingPatterns] = useState(false);
   const [aiInsight, setAiInsight] = useState<string>('');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadPatternAnalysis();
-
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
   }, [selectedPeriod]);
 
   const loadPatternAnalysis = async () => {
@@ -350,7 +265,7 @@ export default function AnalyticsScreen() {
         </TouchableOpacity>
       </View>
 
-      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <View style={{ flex: 1 }}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, contentWithSafeArea]}
@@ -539,17 +454,8 @@ export default function AnalyticsScreen() {
             </View>
             {categoryChartData.length > 0 ? (
               categoryChartData.map((category, index) => (
-                <Animated.View
+                <View
                   key={index}
-                  style={{
-                    opacity: fadeAnim,
-                    transform: [{
-                      translateY: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0],
-                      })
-                    }]
-                  }}
                 >
                   <View style={[styles.categoryRow, { backgroundColor: theme.colors.background.secondary }]}>
                     <View style={styles.categoryInfo}>
@@ -573,7 +479,7 @@ export default function AnalyticsScreen() {
                       </Text>
                     </View>
                   </View>
-                </Animated.View>
+                </View>
               ))
             ) : (
               <View style={[styles.noDataContainer, { backgroundColor: theme.colors.background.secondary }]}>
@@ -601,17 +507,8 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Income Patterns</Text>
               </View>
               {patterns.slice(0, 3).map((pattern, index) => (
-                <Animated.View
+                <View
                   key={index}
-                  style={{
-                    opacity: fadeAnim,
-                    transform: [{
-                      translateY: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0],
-                      })
-                    }]
-                  }}
                 >
                   <View style={[styles.patternCard, { backgroundColor: theme.colors.background.secondary }]}>
                     <View style={styles.patternHeader}>
@@ -649,12 +546,12 @@ export default function AnalyticsScreen() {
                       </Text>
                     )}
                   </View>
-                </Animated.View>
+                </View>
               ))}
             </View>
           )}
         </ScrollView>
-      </Animated.View>
+      </View>
     </View>
   );
 }

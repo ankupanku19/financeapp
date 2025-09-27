@@ -7,10 +7,8 @@ import {
   TextInput,
   RefreshControl,
   Alert,
-  Animated,
   Dimensions,
   ScrollView,
-  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '@/contexts/AppContext';
@@ -53,34 +51,6 @@ export default function IncomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [addIncomeVisible, setAddIncomeVisible] = useState(false);
 
-  // Animation values
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-
-  useEffect(() => {
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -124,54 +94,15 @@ export default function IncomeScreen() {
 
 
   const TransactionCard = ({ item, index }: { item: Income; index: number }) => {
-    const cardAnimValue = useRef(new Animated.Value(0)).current;
-    const scaleValue = useRef(new Animated.Value(1)).current;
-
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        Animated.timing(cardAnimValue, {
-          toValue: 1,
-          duration: 400,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }).start();
-      }, index * 100);
-
-      return () => clearTimeout(timer);
-    }, [index]);
-
     const handlePress = () => {
-      Animated.sequence([
-        Animated.timing(scaleValue, {
-          toValue: 0.98,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleValue, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Handle press without animation
     };
 
     return (
-      <Animated.View
+      <View
         style={[
           styles.transactionCard,
           { backgroundColor: theme.colors.background.primary },
-          {
-            opacity: cardAnimValue,
-            transform: [
-              {
-                translateY: cardAnimValue.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }),
-              },
-              { scale: scaleValue },
-            ],
-          },
         ]}
       >
         <TouchableOpacity
@@ -237,21 +168,19 @@ export default function IncomeScreen() {
             )}
           </View>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     );
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.secondary }]}>
       {/* Header */}
-      <Animated.View
+      <View
         style={[
           styles.header,
           headerWithSafeArea,
           {
             backgroundColor: theme.colors.background.primary,
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
           }
         ]}
       >
@@ -273,7 +202,7 @@ export default function IncomeScreen() {
         <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>
           {filteredIncome.length} transactions • ${totalAmount.toLocaleString()} total
         </Text>
-      </Animated.View>
+      </View>
 
       <ScrollView
         style={styles.content}
@@ -288,14 +217,10 @@ export default function IncomeScreen() {
           />
         }
       >
-        {/* Animated Income Stats */}
-        <Animated.View
+        {/* Income Stats */}
+        <View
           style={[
             styles.statsSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
-            },
           ]}
         >
           <AnimatedIncomeStats
@@ -332,17 +257,13 @@ export default function IncomeScreen() {
             autoRotate={true}
             rotateInterval={4000}
           />
-        </Animated.View>
+        </View>
 
 
         {/* Search and Filters */}
-        <Animated.View
+        <View
           style={[
             styles.controlsSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
           ]}
         >
           <View style={styles.searchContainer}>
@@ -419,16 +340,12 @@ export default function IncomeScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </Animated.View>
+        </View>
 
         {/* Transactions List */}
-        <Animated.View
+        <View
           style={[
             styles.transactionsSection,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
           ]}
         >
           <View style={styles.sectionHeader}>
@@ -475,7 +392,7 @@ export default function IncomeScreen() {
               )}
             </View>
           )}
-        </Animated.View>
+        </View>
       </ScrollView>
       <AddIncomeSheet visible={addIncomeVisible} onClose={() => setAddIncomeVisible(false)} />
     </View>

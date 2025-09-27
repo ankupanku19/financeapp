@@ -18,7 +18,8 @@ export default function TabLayout() {
     }
   }, [isAuthenticated, isLoading]);
 
-  if (!isAuthenticated) {
+  // Show loading or nothing while checking auth to prevent flash
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 
