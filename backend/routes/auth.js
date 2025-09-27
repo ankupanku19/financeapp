@@ -144,7 +144,7 @@ router.post('/register', registerValidation, async (req, res) => {
       });
 
       // Test connection with shorter timeout first
-      const testTransporter = nodemailer.createTransporter({
+      const testTransporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 465,
         secure: true,
