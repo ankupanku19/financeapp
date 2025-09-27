@@ -60,6 +60,8 @@ class EmailService {
 
         const result = await sgMail.send(msg);
         console.log('Email sent via SendGrid:', result[0].statusCode);
+        console.log('SendGrid response:', JSON.stringify(result[0].headers, null, 2));
+        console.log('Email sent to:', to, 'from:', msg.from.email);
         return result;
       } else {
         // Use SMTP fallback

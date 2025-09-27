@@ -119,6 +119,7 @@ router.post('/register', registerValidation, async (req, res) => {
     // Send OTP email
     try {
       console.log('Attempting to send OTP email to:', email);
+      console.log('Generated OTP:', otp);
 
       await emailService.sendEmail({
         to: email,
@@ -133,14 +134,16 @@ router.post('/register', registerValidation, async (req, res) => {
         }
       });
 
-      console.log('OTP email sent successfully');
+      console.log('OTP email sent successfully to:', email);
 
     } catch (emailError) {
       console.error('Email sending error:', emailError);
-      console.log('Email verification temporarily unavailable, but allowing registration to continue...');
 
-      // For now, allow registration to continue without email verification
-      // In production, you might want to use a queue or alternative service
+      // Return error since email is required for verification
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: 'Failed to send verification email. Please try again.'
+      });
     }
 
     res.status(StatusCodes.OK).json({
@@ -195,9 +198,8 @@ router.post('/verify-otp', [
       });
     }
 
-    // Verify OTP (with temporary bypass for email issues)
-    const isValidOTP = tempData.otp === otp || otp === '999999'; // Temporary bypass
-    if (!isValidOTP) {
+    // Verify OTP
+    if (tempData.otp !== otp) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         error: 'Invalid OTP'
