@@ -1,27 +1,38 @@
+const sgMail = require('@sendgrid/mail');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs').promises;
 
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465, // Use secure port for better compatibility
-      secure: true, // Use SSL
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      },
-      tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
-      },
-      connectionTimeout: 60000, // Increased for production
-      greetingTimeout: 30000,
-      socketTimeout: 60000,
-      logger: true, // Enable logging for debugging
-      debug: true // Enable debug mode
-    });
+    // Initialize SendGrid
+    if (process.env.SENDGRID_API_KEY) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      this.useSendGrid = true;
+      console.log('Email service initialized with SendGrid');
+    } else {
+      // Fallback to SMTP
+      this.useSendGrid = false;
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        },
+        tls: {
+          rejectUnauthorized: false,
+          ciphers: 'SSLv3'
+        },
+        connectionTimeout: 60000,
+        greetingTimeout: 30000,
+        socketTimeout: 60000,
+        logger: true,
+        debug: true
+      });
+      console.log('Email service initialized with SMTP fallback');
+    }
 
     this.templatesPath = path.join(__dirname, '../templates/email');
   }
@@ -31,23 +42,42 @@ class EmailService {
    */
   async sendEmail({ to, subject, template, data = {} }) {
     try {
-      // Verify connection first
-      await this.transporter.verify();
-      console.log('SMTP connection verified for EmailService');
-
       const html = await this.renderTemplate(template, data);
+      const text = this.htmlToText(html);
 
-      const mailOptions = {
-        from: `"${process.env.APP_NAME || 'Finance App'}" <${process.env.SMTP_USER}>`,
-        to,
-        subject,
-        html,
-        text: this.htmlToText(html)
-      };
+      if (this.useSendGrid) {
+        // Use SendGrid HTTP API
+        const msg = {
+          to,
+          from: {
+            email: process.env.FROM_EMAIL || process.env.SMTP_USER,
+            name: process.env.APP_NAME || 'Finance App'
+          },
+          subject,
+          html,
+          text
+        };
 
-      const result = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent:', result.messageId);
-      return result;
+        const result = await sgMail.send(msg);
+        console.log('Email sent via SendGrid:', result[0].statusCode);
+        return result;
+      } else {
+        // Use SMTP fallback
+        await this.transporter.verify();
+        console.log('SMTP connection verified for EmailService');
+
+        const mailOptions = {
+          from: `"${process.env.APP_NAME || 'Finance App'}" <${process.env.SMTP_USER}>`,
+          to,
+          subject,
+          html,
+          text
+        };
+
+        const result = await this.transporter.sendMail(mailOptions);
+        console.log('Email sent via SMTP:', result.messageId);
+        return result;
+      }
     } catch (error) {
       console.error('Error sending email:', error);
       throw error;
@@ -79,6 +109,13 @@ class EmailService {
    * Get default email template
    */
   getDefaultTemplate(data) {
+    const otpSection = data.otp ? `
+      <div style="background: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+        <h1 style="color: #6366F1; font-size: 32px; margin: 0; letter-spacing: 4px;">${data.otp}</h1>
+      </div>
+      ${data.expiryMessage ? `<p style="text-align: center; color: #666;">${data.expiryMessage}</p>` : ''}
+    ` : '';
+
     return `
       <!DOCTYPE html>
       <html>
@@ -87,25 +124,26 @@ class EmailService {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${data.title || 'Notification'}</title>
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #6366F1; color: white; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .footer { padding: 20px; text-align: center; color: #666; }
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background: white; }
+          .header { background: #6366F1; color: white; padding: 30px 20px; text-align: center; }
+          .content { padding: 30px 20px; }
+          .footer { padding: 20px; text-align: center; color: #666; border-top: 1px solid #eee; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>${process.env.APP_NAME || 'Finance App'}</h1>
+            <h1 style="margin: 0; font-size: 24px;">${process.env.APP_NAME || 'Finance App'}</h1>
           </div>
           <div class="content">
-            <h2>${data.title || 'Notification'}</h2>
+            <h2 style="color: #6366F1; margin-top: 0;">${data.title || 'Notification'}</h2>
             <p>Hello ${data.userName || 'User'},</p>
             <p>${data.message || 'You have a new notification.'}</p>
+            ${otpSection}
           </div>
           <div class="footer">
-            <p>© ${new Date().getFullYear()} ${process.env.APP_NAME || 'Finance App'}</p>
+            <p style="margin: 0;">© ${new Date().getFullYear()} ${process.env.APP_NAME || 'Finance App'}</p>
           </div>
         </div>
       </body>
