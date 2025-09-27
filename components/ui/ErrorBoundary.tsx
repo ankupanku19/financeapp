@@ -2,7 +2,6 @@ import React, { Component, ReactNode, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react-native';
-import { H2, BodyText } from './Typography';
 
 interface Props {
   children: ReactNode;
@@ -59,11 +58,11 @@ export class ErrorBoundary extends Component<Props, State> {
           <View style={styles.content}>
             <AlertTriangle size={64} color="#EF4444" style={styles.icon} />
 
-            <H2 style={styles.title}>Oops! Something went wrong</H2>
+            <Text style={styles.title}>Oops! Something went wrong</Text>
 
-            <BodyText style={styles.message}>
+            <Text style={styles.message}>
               We're sorry, but something unexpected happened. Our team has been notified and is working on a fix.
-            </BodyText>
+            </Text>
 
             {__DEV__ && this.state.error && (
               <View style={styles.debugContainer}>
@@ -114,11 +113,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
+    fontSize: 24,
+    fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 16,
     color: '#111827',
   },
   message: {
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 32,
     color: '#6B7280',

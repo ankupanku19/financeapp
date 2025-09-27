@@ -4,20 +4,23 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
   ActivityIndicator,
   Dimensions,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Mail, RefreshCw, Check } from 'lucide-react-native';
+import { useToast } from '@/contexts/ToastContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 export default function OTPVerificationScreen() {
   const { email, flow } = useLocalSearchParams<{ email: string; flow: string }>();
+  const toast = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -27,7 +30,34 @@ export default function OTPVerificationScreen() {
   
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+
   useEffect(() => {
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 80,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     // Start countdown timer
     const interval = setInterval(() => {
       setTimer((prev) => {
@@ -65,7 +95,7 @@ export default function OTPVerificationScreen() {
   const handleVerifyOTP = async () => {
     const otpString = otp.join('');
     if (otpString.length !== 6) {
-      Alert.alert('Invalid OTP', 'Please enter the complete 6-digit code');
+      toast.error('Please enter the complete 6-digit code');
       return;
     }
 
@@ -104,7 +134,7 @@ export default function OTPVerificationScreen() {
         }
       }, 1500);
     } catch (error: any) {
-      Alert.alert('Verification Failed', error.message || 'Please try again');
+      toast.error(error.message || 'Verification failed. Please try again.');
       // Clear OTP on error
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -130,7 +160,7 @@ export default function OTPVerificationScreen() {
         throw new Error(data.error || 'Failed to resend OTP');
       }
 
-      Alert.alert('OTP Sent', 'A new verification code has been sent to your email');
+      toast.success('A new verification code has been sent to your email');
       
       // Reset timer
       setTimer(60);
@@ -147,7 +177,7 @@ export default function OTPVerificationScreen() {
         });
       }, 1000);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to resend OTP');
+      toast.error(error.message || 'Failed to resend OTP');
     } finally {
       setIsResending(false);
     }
@@ -171,7 +201,18 @@ export default function OTPVerificationScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [
+              { translateY: slideAnim },
+              { scale: scaleAnim },
+            ],
+          },
+        ]}
+      >
         {/* Icon and Title */}
         <View style={styles.iconContainer}>
           <LinearGradient
@@ -267,7 +308,7 @@ export default function OTPVerificationScreen() {
             </Text>
           )}
         </View>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -275,7 +316,7 @@ export default function OTPVerificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAFBFF', // Match login/register background
   },
   header: {
     paddingHorizontal: 20,
@@ -288,6 +329,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   content: {
     flex: 1,
@@ -306,18 +352,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#1E293B',
     marginBottom: 12,
     textAlign: 'center',
+    letterSpacing: -0.8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 26,
     marginBottom: 40,
+    fontWeight: '500',
+    letterSpacing: -0.3,
   },
   email: {
     fontWeight: '600',
@@ -334,12 +383,17 @@ const styles = StyleSheet.create({
     height: 60,
     borderWidth: 2,
     borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: screenWidth < 375 ? 12 : screenWidth < 414 ? 14 : 16,
     textAlign: 'center',
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: '#1E293B',
     backgroundColor: '#FFFFFF',
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   otpInputFilled: {
     borderColor: '#6366F1',
@@ -347,14 +401,13 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     width: '100%',
-    borderRadius: 16,
+    borderRadius: screenWidth < 375 ? 16 : screenWidth < 414 ? 18 : 20,
     overflow: 'hidden',
     marginBottom: 32,
     shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 12,
   },
   disabledButton: {
     shadowOpacity: 0.1,

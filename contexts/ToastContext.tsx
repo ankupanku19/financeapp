@@ -29,7 +29,7 @@ interface ToastProviderProps {
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({
   children,
-  maxToasts = 3,
+  maxToasts = 1,
 }) => {
   const [toasts, setToasts] = useState<(ToastProps & { id: string })[]>([]);
 
@@ -44,9 +44,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     };
 
     setToasts(prevToasts => {
-      const updatedToasts = [newToast, ...prevToasts];
-      // Limit the number of toasts
-      return updatedToasts.slice(0, maxToasts);
+      // Clear all existing toasts and show only the new one
+      return [newToast];
     });
 
     return id;
@@ -129,16 +128,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
       {children}
 
       {/* Render toasts */}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000 }}>
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, pointerEvents: 'box-none' }}>
         {toasts.map((toast, index) => (
           <Toast
             key={toast.id}
             {...toast}
-            style={{
-              // Offset multiple toasts
-              transform: [{ translateY: index * 10 }],
-              zIndex: 1000 - index,
-            }}
           />
         ))}
       </View>
